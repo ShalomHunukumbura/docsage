@@ -1,0 +1,54 @@
+{"question": "Where should an application keep credentials and other settings that differ between deploys?", "relevant": ["twelve-factor/config"]}
+{"question": "Should my app write and rotate its own log files?", "relevant": ["twelve-factor/logs"]}
+{"question": "What should a process do when it receives SIGTERM?", "relevant": ["twelve-factor/disposability"]}
+{"question": "Is it fine to keep user session data in the memory of a web process and use sticky sessions?", "relevant": ["twelve-factor/processes"]}
+{"question": "How should an app treat the database or message queue it connects to?", "relevant": ["twelve-factor/backing-services"]}
+{"question": "Why should development and production environments be kept as similar as possible?", "relevant": ["twelve-factor/dev-prod-parity"]}
+{"question": "How should one-off tasks like database migrations be run?", "relevant": ["twelve-factor/admin-processes"]}
+{"question": "Should a web app depend on being deployed inside a server container like Tomcat?", "relevant": ["twelve-factor/port-binding"]}
+{"question": "What are the separate stages that turn a codebase into a running deploy?", "relevant": ["twelve-factor/build-release-run"]}
+{"question": "Is it okay to rely on system-wide packages being installed on the server?", "relevant": ["twelve-factor/dependencies"]}
+{"question": "How should an application scale out to handle more work?", "relevant": ["twelve-factor/concurrency"]}
+{"question": "Can multiple apps share the same code repository?", "relevant": ["twelve-factor/codebase"]}
+{"question": "What is the main purpose of code review?", "relevant": ["code-review/reviewer-standard"]}
+{"question": "What is the maximum time it should take to respond to a code review request?", "relevant": ["code-review/reviewer-speed"]}
+{"question": "How should a reviewer label a minor, optional suggestion?", "relevant": ["code-review/reviewer-comments"]}
+{"question": "Why are small changes better for review than large ones?", "relevant": ["code-review/developer-small-cls"]}
+{"question": "What should the first line of a change description say?", "relevant": ["code-review/developer-cl-descriptions"]}
+{"question": "What should a reviewer do when the author disagrees with their feedback?", "relevant": ["code-review/reviewer-pushback"]}
+{"question": "What counts as an emergency that justifies relaxing code review standards?", "relevant": ["code-review/emergencies"]}
+{"question": "Besides correctness, what should a reviewer check in a change?", "relevant": ["code-review/reviewer-looking-for"]}
+{"question": "How should an author react when review comments feel like personal criticism?", "relevant": ["code-review/developer-handling-comments"]}
+{"question": "In what order should I read through the files of a large change under review?", "relevant": ["code-review/reviewer-navigate"]}
+{"question": "How do I prevent SQL injection?", "relevant": ["owasp-top-10/a03"]}
+{"question": "What is SSRF and how do I defend against it?", "relevant": ["owasp-top-10/a10"]}
+{"question": "Which algorithms should be used to hash stored passwords?", "relevant": ["owasp-top-10/a02", "owasp-top-10/a07"]}
+{"question": "How can I protect login forms from credential stuffing?", "relevant": ["owasp-top-10/a07"]}
+{"question": "Why should access control deny by default?", "relevant": ["owasp-top-10/a01"]}
+{"question": "What are the risks of running outdated libraries and frameworks?", "relevant": ["owasp-top-10/a06"]}
+{"question": "Why is leaving default accounts and detailed error messages enabled dangerous?", "relevant": ["owasp-top-10/a05"]}
+{"question": "What is insecure deserialization?", "relevant": ["owasp-top-10/a08"]}
+{"question": "What should be logged so attacks can be detected?", "relevant": ["owasp-top-10/a09"]}
+{"question": "What is the difference between insecure design and an implementation bug?", "relevant": ["owasp-top-10/a04"]}
+{"question": "When should I increment the major version number?", "relevant": ["versioning/semver"]}
+{"question": "What does a 0.x version number say about API stability?", "relevant": ["versioning/semver"]}
+{"question": "How do I mark a breaking change in a commit message?", "relevant": ["versioning/conventional-commits"]}
+{"question": "Which commit type should I use for a bug fix?", "relevant": ["versioning/conventional-commits"]}
+{"question": "How are pre-release versions like 1.0.0-alpha ordered relative to 1.0.0?", "relevant": ["versioning/semver"]}
+{"question": "What is the maximum line length for Python code?", "relevant": ["python-peps/pep-0008"]}
+{"question": "Should I indent Python code with tabs or spaces?", "relevant": ["python-peps/pep-0008"]}
+{"question": "What kind of quotes should Python docstrings use?", "relevant": ["python-peps/pep-0257"]}
+{"question": "Is explicit better than implicit in Python's design philosophy?", "relevant": ["python-peps/pep-0020"]}
+{"question": "How should constants be named in Python?", "relevant": ["python-peps/pep-0008"]}
+{"question": "What is the best pizza recipe?", "relevant": []}
+{"question": "Who won the 2018 FIFA World Cup?", "relevant": []}
+{"question": "What is the capital of Australia?", "relevant": []}
+{"question": "How do I train a neural network in PyTorch?", "relevant": []}
+{"question": "How do I center a div with CSS?", "relevant": []}
+{"question": "How does the React useEffect hook work?", "relevant": []}
+{"question": "What is the difference between TCP and UDP?", "relevant": []}
+{"question": "How do I configure horizontal pod autoscaling in Kubernetes?", "relevant": []}
+{"question": "What is the time complexity of quicksort?", "relevant": []}
+{"question": "How do I write a SQL window function?", "relevant": []}
+{"question": "What is the airspeed velocity of an unladen swallow?", "relevant": []}
+{"question": "How do I set up a Python virtual environment?", "relevant": []}
