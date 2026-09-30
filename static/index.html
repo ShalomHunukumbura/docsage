@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG Explorer</title>
+<style>
+	:root {
+		--bg: #f7f7f8;
+		--card: #ffffff;
+		--ink: #1a1a1c;
+		--muted: #6b6b73;
+		--line: #e3e3e8;
+		--accent: #2f6fd0;
+		--good: #1f9254;
+		--warn: #b5701a;
+		--weak: #b03030;
+	}
+	@media (prefers-color-scheme: dark) {
+		:root {
+			--bg: #16161a;
+			--card: #1e1e24;
+			--ink: #ececf1;
+			--muted: #9a9aa5;
+			--line: #2e2e38;
+			--accent: #6ea8ff;
+			--good: #4ec98a;
+			--warn: #e0a955;
+			--weak: #ef7676;
+		}
+	}
+	* { box-sizing: border-box; }
+	body {
+		margin: 0;
+		background: var(--bg);
+		color: var(--ink);
+		font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	}
+	.wrap { max-width: 860px; margin: 0 auto; padding: 32px 20px 64px; }
+	header { margin-bottom: 28px; }
+	h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.2px; }
+	.sub { color: var(--muted); font-size: 14px; }
+	.box {
+		background: var(--card);
+		border: 1px solid var(--line);
+		border-radius: 12px;
+		padding: 18px;
+		margin-bottom: 18px;
+	}
+	textarea {
+		width: 100%;
+		border: 1px solid var(--line);
+		border-radius: 9px;
+		padding: 12px 14px;
+		font: inherit;
+		background: var(--bg);
+		color: var(--ink);
+		resize: vertical;
+		min-height: 74px;
+	}
+	textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+	.row {
+		display: flex;
+		gap: 12px;
+		align-items: center;
+		flex-wrap: wrap;
+		margin-top: 12px;
+	}
+	button {
+		background: var(--accent);
+		color: #fff;
+		border: 0;
+		border-radius: 9px;
+		padding: 10px 20px;
+		font: inherit;
+		font-weight: 550;
+		cursor: pointer;
+	}
+	button:hover { filter: brightness(1.08); }
+	button:disabled { opacity: .55; cursor: default; }
+	button.ghost {
+		background: transparent;
+		color: var(--accent);
+		border: 1px solid var(--line);
+	}
+	label { color: var(--muted); font-size: 13px; }
+	input[type=number] {
+		width: 58px;
+		padding: 7px 9px;
+		border: 1px solid var(--line);
+		border-radius: 7px;
+		background: var(--bg);
+		color: var(--ink);
+		font: inherit;
+	}
+	.examples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+	.chip {
+		font-size: 13px;
+		padding: 6px 11px;
+		border: 1px solid var(--line);
+		border-radius: 20px;
+		background: var(--bg);
+		color: var(--muted);
+		cursor: pointer;
+	}
+	.chip:hover { border-color: var(--accent); color: var(--accent); }
+	h2 {
+		font-size: 12px;
+		text-transform: uppercase;
+		letter-spacing: .8px;
+		color: var(--muted);
+		margin: 0 0 12px;
+		font-weight: 600;
+	}
+	#answer { white-space: pre-wrap; }
+	.chunk {
+		border-top: 1px solid var(--line);
+		padding: 14px 0;
+	}
+	.chunk:first-of-type { border-top: 0; padding-top: 0; }
+	.chead {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 12px;
+		margin-bottom: 6px;
+	}
+	.src { font-weight: 600; font-size: 14px; }
+	.score { font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 600; }
+	.s-good { color: var(--good); }
+	.s-mid  { color: var(--warn); }
+	.s-low  { color: var(--weak); }
+	.ctext { color: var(--muted); font-size: 13.5px; }
+	.bar { height: 3px; border-radius: 2px; background: var(--line); margin-top: 8px; overflow: hidden; }
+	.bar > i { display: block; height: 100%; background: currentColor; }
+	.hint {
+		font-size: 13px;
+		color: var(--muted);
+		border-left: 2px solid var(--line);
+		padding-left: 12px;
+		margin-top: 14px;
+	}
+	.err { color: var(--weak); font-size: 14px; }
+	.spin {
+		display: inline-block; width: 13px; height: 13px;
+		border: 2px solid var(--line); border-top-color: var(--accent);
+		border-radius: 50%; animation: sp .7s linear infinite; vertical-align: -2px;
+	}
+	@keyframes sp { to { transform: rotate(360deg); } }
+	[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+	<header>
+		<h1>RAG Explorer</h1>
+		<div class="sub">Ask a question — see which chunks were retrieved, and what the model did with them.</div>
+	</header>
+
+	<div class="box">
+		<textarea id="q" placeholder="e.g. How do I build a web API in Python?"></textarea>
+		<div class="row">
+			<button id="ask">Ask</button>
+			<button id="ret" class="ghost">Retrieve only</button>
+			<label>top_k <input type="number" id="k" value="3" min="1" max="10"></label>
+			<span id="status" class="sub"></span>
+		</div>
+		<div class="examples">
+			<span class="chip">How do I build a web API in Python?</span>
+			<span class="chip">What database can store embeddings?</span>
+			<span class="chip">How does Python handle indentation?</span>
+			<span class="chip">What is the best pizza recipe?</span>
+		</div>
+	</div>
+
+	<div class="box" id="answerBox" hidden>
+		<h2>Answer</h2>
+		<div id="answer"></div>
+	</div>
+
+	<div class="box" id="chunkBox" hidden>
+		<h2>Retrieved chunks</h2>
+		<div id="chunks"></div>
+		<div class="hint" id="hint"></div>
+	</div>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function scoreClass(s) {
+	if (s >= 0.35) return 's-good';
+	if (s >= 0.15) return 's-mid';
+	return 's-low';
+}
+
+function render(chunks) {
+	$('chunks').innerHTML = chunks.map(c => {
+		const cls = scoreClass(c.score);
+		const pct = Math.max(0, Math.min(100, c.score * 100));
+		return `<div class="chunk">
+			<div class="chead">
+				<span class="src">${c.source}</span>
+				<span class="score ${cls}">${c.score.toFixed(3)}</span>
+			</div>
+			<div class="ctext">${c.text.slice(0, 260)}${c.text.length > 260 ? '…' : ''}</div>
+			<div class="bar ${cls}"><i style="width:${pct}%"></i></div>
+		</div>`;
+	}).join('');
+
+	const top = chunks.length ? chunks[0].score : 0;
+	$('hint').textContent = top >= 0.35
+		? 'Strong match — the documents genuinely cover this question.'
+		: top >= 0.15
+		? 'Weak match — related, but the answer may not be in these chunks.'
+		: 'No real match. Retrieval still returned its top results, because it always does — the scores are the only signal that nothing here is relevant.';
+	$('chunkBox').hidden = false;
+}
+
+async function call(path) {
+	const question = $('q').value.trim();
+	if (!question) return;
+
+	$('ask').disabled = $('ret').disabled = true;
+	$('status').innerHTML = '<span class="spin"></span>';
+	$('answerBox').hidden = true;
+
+	try {
+		const res = await fetch(path, {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({question, top_k: +$('k').value}),
+		});
+		const data = await res.json();
+		if (!res.ok) throw new Error(data.detail || ('HTTP ' + res.status));
+
+		render(data.chunks);
+		if (data.answer !== undefined) {
+			$('answer').textContent = data.answer;
+			$('answerBox').hidden = false;
+		}
+		$('status').textContent = '';
+	} catch (e) {
+		$('status').innerHTML = '<span class="err">' + e.message + '</span>';
+	} finally {
+		$('ask').disabled = $('ret').disabled = false;
+	}
+}
+
+$('ask').onclick = () => call('/ask');
+$('ret').onclick = () => call('/retrieve');
+$('q').addEventListener('keydown', e => {
+	if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) call('/ask');
+});
+document.querySelectorAll('.chip').forEach(c => {
+	c.onclick = () => { $('q').value = c.textContent; call('/ask'); };
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+FastAPI is a modern web framework for building
+APIs using Python.
+
+FastAPI uses Pydantic for data validation.
+
+FastAPI supports asynchronous programming using
+Python's async and await syntax.
+
+FastAPI automatically generates OpenAPI
+documentation for API endpoints.
