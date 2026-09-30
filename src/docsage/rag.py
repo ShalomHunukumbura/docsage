@@ -1,49 +1,78 @@
-import os
-from dotenv import load_dotenv
-from openai import OpenAI
-from src.retriever import Retriever
+"""Stage 6b: retrieve, decide whether to answer, then generate with citations."""
 
-load_dotenv()
+import re
+from dataclasses import dataclass
 
-# Ollama runs a local server that speaks the OpenAI API format,
-# so the same client library works - it just points at localhost.
-client = OpenAI(
-	base_url=os.getenv("LLM_BASE_URL", "http://localhost:11434/v1"),
-	api_key=os.getenv("OPENAI_API_KEY", "ollama"),
-)
+from docsage.llm import LLM, LLMError
+from docsage.retriever import Hit, Mode, Retriever
 
-MODEL = os.getenv("LLM_MODEL", "llama3.2")
+NO_ANSWER = "I don't know based on the knowledge base."
+# Models sometimes paraphrase the refusal; the opening words are stable.
+NO_ANSWER_PREFIX = "I don't know"
 
-PROMPT = """Answer the question using ONLY the context below.
-If the context does not contain the answer, say "I don't know."
-Cite the source filename for each fact you use.
+SYSTEM_PROMPT = f"""You answer software engineering questions using only the numbered sources you are given.
 
-Context:
-{context}
+Rules:
+- Use only information stated in the sources. Do not add outside knowledge.
+- Cite every claim with its source number in square brackets, e.g. [1] or [2][3].
+- If the sources do not answer the question, reply with exactly: {NO_ANSWER}
+- Be concise: a short paragraph or a few bullet points."""
 
-Question: {question}"""
+_CITATION = re.compile(r"\[(\d+)\]")
+
+
+@dataclass
+class Source:
+	number: int
+	hit: Hit
+	cited: bool
+
+
+@dataclass
+class Answer:
+	answer: str
+	sources: list[Source]
+	# True when DocSage declined to answer, either before calling the LLM
+	# (retrieval found nothing close enough) or because the LLM said so.
+	abstained: bool
+	best_similarity: float
 
 
 class RAG:
-	def __init__(self, data_dir="data"):
-		self.retriever = Retriever(data_dir)
+	def __init__(self, retriever: Retriever, llm: LLM | None, min_similarity: float, top_k: int = 5):
+		self.retriever = retriever
+		self.llm = llm
+		self.min_similarity = min_similarity
+		self.top_k = top_k
 
-	def ask(self, question, top_k=3):
-		hits = self.retriever.retrieve(question, top_k=top_k)
+	def ask(self, question: str, top_k: int | None = None, mode: Mode = "hybrid") -> Answer:
+		retrieval = self.retriever.retrieve(question, top_k or self.top_k, mode)
 
-		context = "\n\n".join(
-			f"[{h['source']}]\n{h['text']}" for h in hits
+		# Retrieval always returns something, even for "best pizza recipe".
+		# Refusing here is cheaper and more reliable than trusting the prompt.
+		if retrieval.best_similarity < self.min_similarity or not retrieval.hits:
+			sources = [Source(i, h, cited=False) for i, h in enumerate(retrieval.hits, start=1)]
+			return Answer(NO_ANSWER, sources, abstained=True, best_similarity=retrieval.best_similarity)
+
+		if self.llm is None:
+			raise LLMError("No LLM is configured. Set LLM_API_KEY to enable answers.", 503)
+
+		text = self.llm.complete(SYSTEM_PROMPT, build_prompt(question, retrieval.hits)).strip()
+
+		cited = {int(n) for n in _CITATION.findall(text)}
+		sources = [Source(i, h, cited=i in cited) for i, h in enumerate(retrieval.hits, start=1)]
+		return Answer(
+			answer=text,
+			sources=sources,
+			abstained=text.startswith(NO_ANSWER_PREFIX),
+			best_similarity=retrieval.best_similarity,
 		)
 
-		response = client.chat.completions.create(
-			model=MODEL,
-			messages=[{
-				"role": "user",
-				"content": PROMPT.format(context=context, question=question),
-			}],
-		)
 
-		return {
-			"answer": response.choices[0].message.content,
-			"sources": [h["source"] for h in hits],
-		}
+def build_prompt(question: str, hits: list[Hit]) -> str:
+	blocks = []
+	for i, hit in enumerate(hits, start=1):
+		c = hit.chunk
+		where = f"{c.title} > {c.section}" if c.section else c.title
+		blocks.append(f"[{i}] {where}\n{c.text}")
+	return "Sources:\n\n" + "\n\n---\n\n".join(blocks) + f"\n\nQuestion: {question}"
