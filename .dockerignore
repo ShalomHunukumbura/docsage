@@ -1,0 +1,10 @@
+.venv
+.git
+index
+data
+__pycache__
+.pytest_cache
+.ruff_cache
+.env
+eval/results.md
+TUTORIAL.md
