@@ -2,4 +2,12 @@
 .venv/
 __pycache__/
 *.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Downloaded by `docsage fetch` and built by `docsage ingest`
 /data
+/index
+
+# Personal learning notes, kept local
+TUTORIAL.md

@@ -1,7 +1,0 @@
-PostgreSQL is an open-source relational database.
-
-PostgreSQL supports SQL queries, transactions,
-indexes, foreign keys, and constraints.
-
-PostgreSQL can be extended with extensions such
-as pgvector for storing and searching embeddings.

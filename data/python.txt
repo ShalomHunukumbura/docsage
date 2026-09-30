@@ -1,9 +1,0 @@
-Python is a high-level programming language.
-Python supports object-oriented programming,
-functional programming, and procedural programming.
-
-Python is commonly used for web development,
-data science, machine learning, automation,
-and scripting.
-
-Python uses indentation to define code blocks.
